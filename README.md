@@ -2,5 +2,5 @@
 
 Test
 
-RGDBSLAM
+RGBDSLAM
 http://wiki.ros.org/rgbdslam
