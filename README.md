@@ -14,9 +14,9 @@ Takes in PointCloud2 data received from topic, '/camera/depth/points', and publi
 ```
 sudo apt-get install ros-kinetic-realsense-camera ros-kinetic-octomap-server ros-kinetic-octomap-rviz-plugins
 ```
-ros-kinetic-realsense-camera     -  Get PointCloud2 from depth camera
-ros-kinetic-octomap-server       -  Generating octomap from PointCloud2? ('?' means I'm unsure)
-ros-kinetic-octomap-rviz-plugins -  Rviz plugins to visualize octomap?
+(ros-kinetic-realsense-camera)[http://wiki.ros.org/realsense_camera]     -  Get PointCloud2 from depth camera__
+ros-kinetic-octomap-server       -  Generating octomap from PointCloud2? ('?' means I'm unsure)__
+ros-kinetic-octomap-rviz-plugins -  Rviz plugins to visualize octomap?__
 
 ### Execution
 
