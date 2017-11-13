@@ -8,7 +8,7 @@ http://wiki.ros.org/rgbdslam
 src/realSense_to_Octo.py
 
 ### Description
-Takes in PointCloud2 data received from topic, '/camera/depth/points', and publishes that same data to topic, 'cloud_in'. In order to send PointCloud2 data from realsense_camera node to octomap_server node.
+Takes in PointCloud2 data received from topic, ```/camera/depth/points```, and publishes that same data to topic, ```cloud_in```. In order to send PointCloud2 data from realsense_camera node to octomap_server node.
 
 ### Software Dependencies
 ```
