@@ -16,7 +16,9 @@ sudo apt-get install ros-kinetic-realsense-camera ros-kinetic-octomap-server ros
 ```
 [ros-kinetic-realsense-camera](http://wiki.ros.org/realsense_camera)     -  Get PointCloud2 from depth camera  
 [ros-kinetic-octomap-server](http://wiki.ros.org/octomap_server)       -  Generating octomap from PointCloud2? ('?' means I'm unsure)  
-ros-kinetic-octomap-rviz-plugins -  Rviz plugins to visualize octomap?  
+[ros-kinetic-octomap-rviz-plugins](http://wiki.ros.org/octomap_rviz_plugins) -  Rviz plugins to visualize octomap?  
+
+
 
 ### Execution
 
@@ -60,3 +62,20 @@ rviz
 
 In rviz:
 ??? (I don't know exactly how to get this to work.)
+
+## 3D Rendering
+Generating a 3D rendering.
+
+[3D Rendering](http://wiki.ros.org/rtabmap_ros/Tutorials/HandHeldMapping)  
+[rtabmap_ros](http://wiki.ros.org/rtabmap_ros)  
+
+### Execution
+Run the following:
+```
+roslaunch rtabmap_ros rtabmap.launch rtabmap_args:="--delete_db_on_start" depth_topic:=/camera/depth_registered/sw_registered/image_rect_raw
+```
+roslaunch realsense_camera r200_nodelet_rgbd.launch
+```
+
+```
+
