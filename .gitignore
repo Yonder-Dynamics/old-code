@@ -39,3 +39,7 @@ Thumbs.db
 # Misc #
 ########
 *.sw*
+
+# ROS Bag files
+bagfiles/*
+*.bag

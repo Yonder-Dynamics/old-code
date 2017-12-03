@@ -74,8 +74,15 @@ Run the following:
 ```
 roslaunch rtabmap_ros rtabmap.launch rtabmap_args:="--delete_db_on_start" depth_topic:=/camera/depth_registered/sw_registered/image_rect_raw
 ```
-roslaunch realsense_camera r200_nodelet_rgbd.launch
+Launch the camera
 ```
+roslaunch realsense_camera r200_nodelet_rgbd.launch
 
 ```
+Create an empty odom transform
+```
+rosrun tf static_transform_publisher 0 0 0 0 0 0 odom camera_link 100
+```
+
+
 
