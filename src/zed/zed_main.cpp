@@ -1,5 +1,8 @@
 #include <ros/ros.h>
 #include <std_msgs/String.h>
+#include <geometry_msgs/Point.h>
+#include <geometry_msgs/Quaternion.h>
+#include <geometry_msgs/PoseStamped.h>
 
 #include<sl/Camera.hpp>
 
@@ -11,7 +14,7 @@ int main(int argc,char** argv){
 
   ros::init(argc,argv,"ZED");
   ros::NodeHandle n;
-  ros::Publisher pub = n.advertise<std_msgs::String>("zed_out",1000);
+  ros::Publisher pub = n.advertise<geometry_msgs::PoseStamped>("zed_out",1000);
 
 
   ros::Rate loopRate(10);
@@ -42,13 +45,17 @@ int main(int argc,char** argv){
   std::cout << "camera tracking enabled\n";
 
   sl::Pose zed_pose;
+  geometry_msgs::PoseStamped pose_out;
+  pose_out.header.frame_id = "map";
   std_msgs::String msg;
   char msg_data[255];
+  int count = 0;
   while(ros::ok()){
     if(zed.grab() == sl::SUCCESS){
       sl::TRACKING_STATE state =
         zed.getPosition(zed_pose, sl::REFERENCE_FRAME_WORLD);
       // Display translation and timestamp
+      /*
       int end;
       end = sprintf(msg_data,
         "Translation: tx: %.3f, ty:  %.3f, tz:  %.3f, timestamp: %llu\r",
@@ -69,8 +76,24 @@ int main(int argc,char** argv){
       msg_data[end] = 0;
       msg.data = std::string(msg_data);
       pub.publish(msg);
+      */
+
+      pose_out.header.stamp.sec = zed_pose.timestamp/1000000000;
+      pose_out.header.stamp.nsec = zed_pose.timestamp%1000000000;
+      //std::cout << "time: " << zed_pose.timestamp << "\n";
+      pose_out.pose.position.x = zed_pose.getTranslation().tx;
+      pose_out.pose.position.y = zed_pose.getTranslation().ty;
+      pose_out.pose.position.z = zed_pose.getTranslation().tz;
+
+      pose_out.pose.orientation.x = zed_pose.getOrientation().ox;
+      pose_out.pose.orientation.y = zed_pose.getOrientation().oy;
+      pose_out.pose.orientation.z = zed_pose.getOrientation().oz;
+      pose_out.pose.orientation.w = zed_pose.getOrientation().ow;
+
+      pub.publish(pose_out);
     }
 
+    count++;
     ros::spinOnce();
     loopRate.sleep();
   }
