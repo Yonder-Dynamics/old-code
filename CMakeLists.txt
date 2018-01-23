@@ -4,11 +4,17 @@ project(2018_URC)
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 
+set (CMAKE_CXX_STANDARD 11)
+set(zed_DIR "/usr/local/zed/")
+set(CUDA_DIR "/usr/local/cuda-8.0")
+set(CUDA_INCLUDE_DIR "${CUDA_DIR}/include")
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED
+find_package(
+  catkin REQUIRED
 	roscpp
+  zed REQUIRED
 )
 
 ## System dependencies are found with CMake's conventions
@@ -116,6 +122,8 @@ catkin_package(
 include_directories(
 # include
 	${catkin_INCLUDE_DIRS}
+  ${ZED_INCLUDE_DIRS}
+  ${CUDA_INCLUDE_DIR}
 )
 
 ## Declare a C++ library
@@ -199,4 +207,15 @@ include_directories(
 # cpp executable adds
 add_executable(MCI src/microcontrollers/MicroControllerInterface.cpp)
 target_link_libraries(MCI ${catkin_LIBRARIES})
+
+add_executable(ZED src/zed/zed_main.cpp)
+target_link_libraries(ZED 
+  ${catkin_LIBRARIES}
+  ${ZED_LIBRARIES}
+  ${CUDA_NPP_LIBRARIES_ZED}
+)
+link_directories(
+  ${ZED_LIBRARY_DIR}
+  ${cuda_path}
+)
 #add_dependencies(talker beginner_tutorials_generate_messages_cpp)
