@@ -1,4 +1,4 @@
 <launch>
-  <node name="zed" pkg="2018_URC" type="ZED"/>
-	<node pkg="tf" type="static_transform_publisher" name="static_map" args="1 0 0 0 0 0 1 map map_child 100" />
+  <!--node name="zed" pkg="2018_URC" type="ZED"/-->
+	<node pkg="tf" type="static_transform_publisher" name="static_map" args="1 0 0 0 0 0 1 map camera_link 100" />
 </launch>
