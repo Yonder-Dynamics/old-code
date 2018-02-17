@@ -64,7 +64,7 @@ gps_code,?       ,?,latitude,dir,longitude,dir,?  ,?    ,?     ,,,?
         """
         line = self.ser.readline()
         gps_code = line[:6]
-	#print(line)
+        #print(line)
         
         while((gps_code != '$GPGGA') and (gps_code != '$GPGGA')):
             line = self.ser.readline()
