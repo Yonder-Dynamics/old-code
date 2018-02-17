@@ -1,14 +1,11 @@
-# coding: utf-8
-## @package MPU9250
-#  This is a FaBo9Axis_MPU9250 library for the FaBo 9AXIS I2C Brick.
-#
-#  http://fabo.io/202.html
-#
-#  Released under APACHE LICENSE, VERSION 2.0
-#
-#  http://www.apache.org/licenses/
-#
-#  FaBo <info@fabo.io>
+'''
+Aaron Lee
+
+imu.py
+
+Integrates the accelerometer data and gyro data to give definite x,y,z distance
+and x,y,z rotation values	
+'''
 
 import os
 import smbus
@@ -97,55 +94,183 @@ bus = smbus.SMBus(1)
 ## MPU9250 I2C Controll class
 class MPU9250:
 
-    zeroOffset = 0
-    deadband = 0
-    numCalSamples = 100
-    calInterval = 0.25
-    heading = 0
+    zeroOffsetGyro = 0
+    deadbandGyro = 0
+    zeroOffsetAccel = 0
+    deadbandAccel = 0
+    numCalSamples = 100 # Samples to take
+    calInterval = 0.1 # Time between samples
+    x = 0
+    y = 0
+    z = 0
+    xRot = 0
+    yRot = 0
+    zRot = 0
     prevTime = 0
 
     def calibrate(self):
-	data = bus.read_i2c_block_data(self.address, GYRO_OUT, 6)
-        z = self.dataConv(data[5], data[4])
-        z = round(z*self.gres, 3)
+	'''
+	Calibrates the IMU by filtering out small sensor noise
+	'''
+	gyro = bus.read_i2c_block_data(self.address, GYRO_OUT, 6)
+	xRot = self.dataConv(gyro[1], gyro[0])
+        yRot = self.dataConv(gyro[3], gyro[2])
+        zRot = self.dataConv(gyro[5], gyro[4])
+
+	xRot = round(xRot*self.gres, 3)	
+	yRot = round(yRot*self.gres, 3)	
+        zRot = round(zRot*self.gres, 3)
 	
-	minValue = z
-        maxValue = minValue
-        total = 0.0
+	accel = bus.read_i2c_block_data(self.address, ACCEL_OUT, 6)
+        x = self.dataConv(accel[1], accel[0])
+        y = self.dataConv(accel[3], accel[2])
+        z = self.dataConv(accel[5], accel[4])
+
+        x = round(x*self.ares, 3)
+        y = round(y*self.ares, 3)
+        z = round(z*self.ares, 3)
+
+
+	minValueAccel = z
+	maxValueAccel = minValueAccel
+	totalAccel = 0.0
+
+	minValueGyro = zRot
+        maxValueGyro = minValueGyro
+        totalGyro = 0.0
 
 	for n in range (0, MPU9250.numCalSamples):
-		data = bus.read_i2c_block_data(self.address, GYRO_OUT, 6)
-        	z = self.dataConv(data[5], data[4])
-        	z = round(z*self.gres, 3)
+		
+		gyro = bus.read_i2c_block_data(self.address, GYRO_OUT, 6)
+		xRot = self.dataConv(gyro[1], gyro[0])
+		yRot = self.dataConv(gyro[3], gyro[2])
+		zRot = self.dataConv(gyro[5], gyro[4])
 
-		total += z
-		if z < minValue:
-			minValue = z
-		if z > maxValue:
-			maxValue = z
+		xRot = round(xRot*self.gres, 3)	
+		yRot = round(yRot*self.gres, 3)	
+		zRot = round(zRot*self.gres, 3)
+		
+		accel = bus.read_i2c_block_data(self.address, ACCEL_OUT, 6)
+		x = self.dataConv(accel[1], accel[0])
+		y = self.dataConv(accel[3], accel[2])
+		z = self.dataConv(accel[5], accel[4])
+
+		x = round(x*self.ares, 3)
+		y = round(y*self.ares, 3)
+		z = round(z*self.ares, 3)		
+		
+		totalGyro += zRot
+		if zRot < minValueGyro:
+			minValueGyro = zRot
+		if zRot > maxValueGyro:
+			maxValueAccel = zRot
+
+		totalAccel += z
+		if z < minValueAccel:
+			minValueAccel = z
+		if z > maxValueAccel:
+			maxValueAccel = z
+
 		print("Calibrating ... " + str(n))
 		time.sleep(MPU9250.calInterval)
 
-	MPU9250.zeroOffset = total/MPU9250.numCalSamples
-	MPU9250.deadband = maxValue - minValue
-	
-    def getRotationRate(self):
-	data = bus.read_i2c_block_data(self.address, GYRO_OUT, 6)
-        z = self.dataConv(data[5], data[4])
-        z = round(z*self.gres, 3)
+	MPU9250.zeroOffsetGyro = totalGyro/MPU9250.numCalSamples
+	MPU9250.deadbandGyro = maxValueGyro - minValueGyro
+	MPU9250.zeroOffsetAccel = totalAccel/MPU9250.numCalSamples
+	MPU9250.deadbandAccel = maxValueAccel - minValueAccel
 
-	return self.applyDeadband(z - MPU9250.zeroOffset, MPU9250.deadband)
+    def getXRate(self):
+        data = bus.read_i2c_block_data(self.address, ACCEL_OUT, 6)
+        x = self.dataConv(data[1], data[0])
+
+        x = round(x*self.ares, 3)
+
+        return self.applyDeadband(x - MPU9250.zeroOffsetAccel,
+		MPU9250.deadbandAccel)
+
+    def getYRate(self):
+        data = bus.read_i2c_block_data(self.address, ACCEL_OUT, 6)
+        y = self.dataConv(data[3], data[2])
+
+        y = round(y*self.ares, 3)
+
+        return self.applyDeadband(y - MPU9250.zeroOffsetAccel,
+		MPU9250.deadbandAccel)
+
+    def getZRate(self):
+        data = bus.read_i2c_block_data(self.address, ACCEL_OUT, 6)
+        z = self.dataConv(data[5], data[4])
+
+        z = round(z*self.ares, 3)
+
+        return self.applyDeadband(z - MPU9250.zeroOffsetAccel,
+		MPU9250.deadbandAccel)
+
+    def getXRotationRate(self):
+	data = bus.read_i2c_block_data(self.address, GYRO_OUT, 6)
+        xRot = self.dataConv(data[1], data[0])
+        xRot = round(xRot*self.gres, 3)
+
+	return self.applyDeadband(xRot - MPU9250.zeroOffsetGyro, 
+		MPU9250.deadbandGyro)
+ 
+    def getYRotationRate(self):
+	data = bus.read_i2c_block_data(self.address, GYRO_OUT, 6)
+        yRot = self.dataConv(data[3], data[2])
+        yRot = round(yRot*self.gres, 3)
+
+	return self.applyDeadband(yRot - MPU9250.zeroOffsetGyro, 
+		MPU9250.deadbandGyro)
+	
+    def getZRotationRate(self):
+	data = bus.read_i2c_block_data(self.address, GYRO_OUT, 6)
+        zRot = self.dataConv(data[5], data[4])
+        zRot = round(zRot*self.gres, 3)
+
+	return self.applyDeadband(zRot - MPU9250.zeroOffsetGyro, 
+		MPU9250.deadbandGyro)
 
     def integrate(self):
 	currTime = time.time()
-	rate = self.getRotationRate()
 
-	MPU9250.heading += rate * (currTime - MPU9250.prevTime)
+	xRate = self.getXRotationRate()
+	yRate = self.getYRotationRate()
+	zRate = self.getZRotationRate()
+
+	x = self.getXRate()
+	y = self.getYRate()
+	z = self.getZRate()
+
+	# Calculate X Rotation
+	MPU9250.xRot += xRate * (currTime - MPU9250.prevTime)
+	MPU9250.xRot %= 360
+
+	# Calculate Y Rotation
+	MPU9250.yRot += yRate * (currTime - MPU9250.prevTime)
+	MPU9250.yRot %= 360
+	
+	# Calculate Z Rotation
+	MPU9250.zRot += zRate * (currTime - MPU9250.prevTime)
+	MPU9250.zRot %= 360
+	
+	# Calculate X Rate
+	MPU9250.x += x * (currTime - MPU9250.prevTime)
+
+	# Calculate Y Rate
+	MPU9250.y += y * (currTime - MPU9250.prevTime)
+	
+	# Calculate Z Rate
+	MPU9250.z += z * (currTime - MPU9250.prevTime)
+
 	MPU9250.prevTime = currTime
-	return MPU9250.heading
 
-    def resetIntegrator(self):
-	MPU9250.heading = 0.0
+	return [MPU9250.xRot,MPU9250.yRot,MPU9250.zRot,
+		MPU9250.x,MPU9250.y,MPU9250.z]
+
+    def resetGyro(self):
+	MPU9250.xRot = 0.0
+	MPU9250.yRot = 0.0
+	MPU9250.zRot = 0.0
         MPU9250.prevTime = time.time()
 
     def applyDeadband(self, value, deadband):
@@ -330,7 +455,7 @@ class MPU9250:
 
     ## Data Convert
     # @param [in] self The object pointer.
-    # @param [in] data1 LSB
+    # @param [in] data1 LS
     # @param [in] data2 MSB
     # @retval Value MSB+LSB(int 16bit)
     def dataConv(self, data1, data2):
