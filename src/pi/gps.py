@@ -132,7 +132,7 @@ gps_code,?       ,?,latitude,dir,longitude,dir,?  ,?    ,?     ,,,?
         
                 
 if(__name__ == '__main__'):
-    gps = GPS()
+    gps = GPS(fake=True)
     while(True):
         print(gps.read_lat_long_DD())
         
