@@ -38,7 +38,7 @@ class Fake_Serial:
 
 class GPS:
     
-    def __init__(self,port='/dev/ttyACM0',fake=False):
+    def __init__(self,port='/dev/ttyAMA0',fake=False):
         
         # If fake flag is on, we read fake data.
         if(fake):
@@ -64,21 +64,23 @@ gps_code,?       ,?,latitude,dir,longitude,dir,?  ,?    ,?     ,,,?
         """
         line = self.ser.readline()
         gps_code = line[:6]
+	#print(line)
         
-        while(gps_code != '$GPRMC'):
-            self.ser.readline()
+        while((gps_code != '$GPGGA') and (gps_code != '$GPGGA')):
+            line = self.ser.readline()
+            
             gps_code = line[:6]
-            print(gps_code)
+            #print(gps_code)
         
         
         values = line.split(',')
         
         # Reading lat and long values in DMM format.
-        latitude_DMM = values[3]
-        latitude_dir = values[4]
+        latitude_DMM = values[2]
+        latitude_dir = values[3]
         
-        longitude_DMM = values[5]
-        longitude_dir = values[6]
+        longitude_DMM = values[4]
+        longitude_dir = values[5]
         
         return (latitude_DMM,latitude_dir,longitude_DMM,longitude_dir)
         
