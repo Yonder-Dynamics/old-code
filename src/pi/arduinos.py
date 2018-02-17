@@ -1,6 +1,6 @@
 import smbus
 import time
-# for RPI version 1, use “bus = smbus.SMBus(0)”
+# for RPI version 1, use "bus = smbus.SMBus(0)"
 bus = smbus.SMBus(1)
 
 # This is the address we setup in the Arduino Program
@@ -17,14 +17,14 @@ def readNumber():
     return number
 
 while True:
-    var = input(“Enter 1 – 9: “)
+    var = input("Enter 1 - 9: ")
     if not var:
         continue
 
     writeNumber(var)
-    print “RPI: Hi Arduino, I sent you “, var
+    print("RPI: Hi Arduino, I sent you ", var))
     # sleep one second
     time.sleep(1)
 
     number = readNumber()
-    print “Arduino: Hey RPI, I received a digit “, number
+    print("Arduino: Hey RPI, I received a digit", number)
