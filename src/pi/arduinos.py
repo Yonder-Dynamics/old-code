@@ -14,15 +14,16 @@ def writeNumber(value):
 def readNumber():
     number = bus.read_byte(address)
     # number = bus.read_byte_data(address, 1)
-    return number
+    return chr(number)
 
 while True:
-    var = input("Enter 1 - 9: ")
+    var = raw_input("Enter 1 - 9: ")
+    print(type(var))
     if not var:
         continue
-
+    var = ord(var)
     writeNumber(var)
-    print("RPI: Hi Arduino, I sent you ", var))
+    print("RPI: Hi Arduino, I sent you ", var)
     # sleep one second
     time.sleep(1)
 
