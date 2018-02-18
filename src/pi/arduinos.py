@@ -1,3 +1,11 @@
+"""
+Communicates with several arduinos to command them and collect data over I2C.
+We will be converting ints, floats, and strings to ascii values and then sending it over to the Arduinos. Additonally, we will be receiving ascii-values and converting them to ints, floats, or strings as needed.
+
+
+More about the smbus library can be found here: http://wiki.erazor-zone.de/wiki:linux:python:smbus:doc
+"""
+
 import smbus
 import time
 
@@ -17,14 +25,19 @@ def readNumber():
 
 while True:
     var = raw_input("Enter 1 - 9: ")
-    print(type(var))
+    
     if not var:
         continue
-    var = ord(var)
-    writeNumber(var)
+    for char in var:
+        char_ascii = ord(char)
+        writeNumber(char_ascii)
+        
     print("RPI: Hi Arduino, I sent you ", var)
     # sleep one second
     time.sleep(1)
-
-    number = readNumber()
-    print("Arduino: Hey RPI, I received a digit", number)
+    
+    char_a = readNumber()
+    word = ""
+    while(char_a != '/0'):
+        word += ""
+    print("Arduino: Hey RPI, I received a digit", word)
