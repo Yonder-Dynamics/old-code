@@ -29,6 +29,7 @@ while True:
     if not var:
         continue
     for char in var:
+        print(char)
         char_ascii = ord(char)
         writeNumber(char_ascii)
         
