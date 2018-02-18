@@ -21,24 +21,27 @@ def writeNumber(value):
 def readNumber():
     number = bus.read_byte(address)
     # number = bus.read_byte_data(address, 1)
+    print(chr(number))
     return chr(number)
 
 while True:
     var = raw_input("Enter 1 - 9: ")
-    
+    var += '\0'
     if not var:
         continue
     for char in var:
-        print(char)
         char_ascii = ord(char)
         writeNumber(char_ascii)
-        
+        time.sleep(0.05)
     print("RPI: Hi Arduino, I sent you ", var)
     # sleep one second
     time.sleep(1)
-    
-    char_a = readNumber()
     word = ""
-    while(char_a != '/0'):
-        word += ""
+    char = readNumber()
+    while(char != '\0'):
+        word += char
+        char = readNumber()
+    word+= '\0'
+
+
     print("Arduino: Hey RPI, I received a digit", word)
