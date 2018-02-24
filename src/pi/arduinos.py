@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Communicates with several arduinos to command them and collect data over I2C.
 We will be converting ints, floats, and strings to ascii values and then sending it over to the Arduinos. Additonally, we will be receiving ascii-values and converting them to ints, floats, or strings as needed.

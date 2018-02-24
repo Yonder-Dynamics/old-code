@@ -14,7 +14,10 @@ set(CUDA_INCLUDE_DIR "${CUDA_DIR}/include")
 find_package(
   catkin REQUIRED
 	roscpp
-  zed REQUIRED
+#  zed REQUIRED
+  rospy
+  sensor_msgs
+  std_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -122,8 +125,8 @@ catkin_package(
 include_directories(
 # include
 	${catkin_INCLUDE_DIRS}
-  ${ZED_INCLUDE_DIRS}
-  ${CUDA_INCLUDE_DIR}
+#  ${ZED_INCLUDE_DIRS}
+#  ${CUDA_INCLUDE_DIR}
 )
 
 ## Declare a C++ library
@@ -208,14 +211,14 @@ include_directories(
 add_executable(MCI src/microcontrollers/MicroControllerInterface.cpp)
 target_link_libraries(MCI ${catkin_LIBRARIES})
 
-add_executable(ZED src/zed/zed_main.cpp)
-target_link_libraries(ZED 
-  ${catkin_LIBRARIES}
-  ${ZED_LIBRARIES}
-  ${CUDA_NPP_LIBRARIES_ZED}
-)
-link_directories(
-  ${ZED_LIBRARY_DIR}
-  ${cuda_path}
-)
+#add_executable(ZED src/zed/zed_main.cpp)
+#target_link_libraries(ZED 
+  #${catkin_LIBRARIES}
+  #${ZED_LIBRARIES}
+  #${CUDA_NPP_LIBRARIES_ZED}
+#)
+#link_directories(
+  #${ZED_LIBRARY_DIR}
+  #${cuda_path}
+#)
 #add_dependencies(talker beginner_tutorials_generate_messages_cpp)
