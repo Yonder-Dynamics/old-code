@@ -136,7 +136,7 @@ void setup() {
 
 void loop() {
 
-  receiveEvent(10);
+  //receiveEvent(10);
 
   //turns off motor if maxTimeout ms has passed since last input
   if(millis() - timeout > maxTimeout){
