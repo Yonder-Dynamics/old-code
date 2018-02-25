@@ -19,7 +19,6 @@ void forwards(int speed) {
     // turn on motor B
   digitalWrite(inB3, HIGH);
   digitalWrite(inB4, LOW);
-  delay(2000);
 }
 
 // Move backwards 
@@ -33,7 +32,6 @@ void backwards(int speed) {
   // motor B - forward
   digitalWrite(inB3, LOW);
   digitalWrite(inB4, HIGH); 
-  delay(2000);
 }
 
 // Turn left 
@@ -47,7 +45,6 @@ void left(int speed) {
   // motor B - forward
   digitalWrite(inB3, LOW);
   digitalWrite(inB4, HIGH); 
-  delay(2000);  
 }  
   
 // Turn right 
@@ -61,7 +58,6 @@ void right(int speed) {
   // motor B - forward
   digitalWrite(inB3, HIGH);
   digitalWrite(inB4, LOW); 
-  delay(2000);
 }
 
 // Set motor speed increments
@@ -131,8 +127,6 @@ void loop() {
   if(millis() - timeout > 1000){
     motorOff();
   }
-  
-  //delay(10);
 }
 
 
@@ -140,6 +134,9 @@ int motorSpeed = 80;
 // function that executes whenever data is received from master
 // this function is registered as an event, see setup()
 void receiveEvent(int howMany) {
+
+  //CHANGE "SERIAL" BACK TO "WIRE" WHEN CONNECTING TO PI
+  
   while (Serial.available()) { // loop through all 
     char c = Serial.read(); // receive byte as a character
     Serial.print(c);         // print the character
