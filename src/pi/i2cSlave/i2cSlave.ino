@@ -121,21 +121,43 @@ void setup() {
   Serial.begin(9600);           // start serial for output
 }
 
+long timeout = 0;
+
 void loop() {
-  delay(10);
+
+  receiveEvent(10);
+
+  //turns off motor if 1000 ms has passed since last input
+  if(millis() - timeout > 1000){
+    motorOff();
+  }
+  
+  //delay(10);
 }
 
+
+int motorSpeed = 80;
 // function that executes whenever data is received from master
 // this function is registered as an event, see setup()
 void receiveEvent(int howMany) {
-  while (Wire.available()) { // loop through all 
-    char c = Wire.read(); // receive byte as a character
+  while (Serial.available()) { // loop through all 
+    char c = Serial.read(); // receive byte as a character
     Serial.print(c);         // print the character
-    if(c == 'g'){
-      forwards(100);
-    } else if(c == 's'){
+    
+    //controls: WASD
+    if(c == 'w'){
+      forwards(motorSpeed);
+    } else if(c == 'a') {
+      left(motorSpeed);
+    } else if(c == 's') {
+      backwards(motorSpeed);
+    } else if(c == 'd') {
+      right(motorSpeed);
+    } else if(c == ' ') {
       motorOff();
     }
+
+    timeout = millis();
   }
 }
 
