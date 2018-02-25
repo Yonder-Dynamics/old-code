@@ -30,7 +30,7 @@ def readNumber():
 
 while True:
     var = raw_input("Enter 1 - 9: ")
-    var += '\0'
+    #var += '\0'
     if not var:
         continue
     for char in var:
@@ -40,12 +40,12 @@ while True:
     print("RPI: Hi Arduino, I sent you ", var)
     # sleep one second
     time.sleep(1)
-    word = ""
+    #word = ""
     char = readNumber()
-    while(char != '\0'):
-        word = word + char
-        char = readNumber()
-    word+= '\0'
+    #while(char != '\0'):
+        #word = word + char
+        #char = readNumber()
+    #word+= '\0'
 
 
-    print("Arduino: Hey RPI, I received a digit", word)
+    print("Arduino: Hey RPI, I received a digit", char)
