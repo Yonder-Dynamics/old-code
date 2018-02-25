@@ -8,6 +8,20 @@ int enB = 3;
 int inB3 = 5;
 int inB4 = 4;
 
+//wire configs
+int address = 8;
+
+//motor configs
+int motorSpeed = 80;
+
+//timeout configs
+long timeout = 0;
+long maxTimeout = 1000; //how long tank will run without new input before stopping
+
+/*
+ * MOVEMENT
+ */
+
 // Move forwards
 void forwards(int speed) { 
   // set speed out of possible range 0~255
@@ -60,7 +74,9 @@ void right(int speed) {
   digitalWrite(inB4, LOW); 
 }
 
-// Set motor speed increments
+/*
+ * Set motor speed increments
+ */
 
 // accelerate from zero to maximum speed
 void maxAccel(int speed) {
@@ -112,33 +128,30 @@ void setup() {
   pinMode(inA2, OUTPUT);
   pinMode(inB3, OUTPUT);
   pinMode(inB4, OUTPUT);
-  Wire.begin(8);                // join i2c bus with address #8
+  Wire.begin(address);          // join i2c bus with address #8
   Wire.onReceive(receiveEvent); // register event
   Serial.begin(9600);           // start serial for output
 }
 
-long timeout = 0;
 
 void loop() {
 
   receiveEvent(10);
 
-  //turns off motor if 1000 ms has passed since last input
-  if(millis() - timeout > 1000){
+  //turns off motor if maxTimeout ms has passed since last input
+  if(millis() - timeout > maxTimeout){
     motorOff();
   }
 }
 
 
-int motorSpeed = 80;
+
 // function that executes whenever data is received from master
 // this function is registered as an event, see setup()
 void receiveEvent(int howMany) {
 
-  //CHANGE "SERIAL" BACK TO "WIRE" WHEN CONNECTING TO PI
-  
-  while (Serial.available()) { // loop through all 
-    char c = Serial.read(); // receive byte as a character
+  while (Wire.available()) { // loop through all 
+    char c = Wire.read(); // receive byte as a character
     Serial.print(c);         // print the character
     
     //controls: WASD
