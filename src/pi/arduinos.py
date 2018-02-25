@@ -39,13 +39,13 @@ while True:
         time.sleep(0.05)
     print("RPI: Hi Arduino, I sent you ", var)
     # sleep one second
-    time.sleep(1)
+    #time.sleep(3)
     #word = ""
-    char = readNumber()
+    #char = readNumber()
     #while(char != '\0'):
         #word = word + char
         #char = readNumber()
     #word+= '\0'
 
 
-    print("Arduino: Hey RPI, I received a digit", char)
+    #print("Arduino: Hey RPI, I received a digit", char)
