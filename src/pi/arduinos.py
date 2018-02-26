@@ -13,10 +13,13 @@ import time
 bus = smbus.SMBus(1)
 
 # This is the address we setup in the Arduino Program
-address = 0x04
+address = 0x08
 
 def writeNumber(value):
-    bus.write_byte(address, value)
+    try:
+        bus.write_byte(address, value)
+    except:
+        print("failed");
     return -1
 
 def readNumber():
@@ -27,7 +30,7 @@ def readNumber():
 
 while True:
     var = raw_input("Enter 1 - 9: ")
-    var += '\0'
+    #var += '\0'
     if not var:
         continue
     for char in var:
@@ -36,13 +39,13 @@ while True:
         time.sleep(0.05)
     print("RPI: Hi Arduino, I sent you ", var)
     # sleep one second
-    time.sleep(1)
-    word = ""
-    char = readNumber()
-    while(char != '\0'):
-        word += char
-        char = readNumber()
-    word+= '\0'
+    #time.sleep(3)
+    #word = ""
+    #char = readNumber()
+    #while(char != '\0'):
+        #word = word + char
+        #char = readNumber()
+    #word+= '\0'
 
 
-    print("Arduino: Hey RPI, I received a digit", word)
+    #print("Arduino: Hey RPI, I received a digit", char)
