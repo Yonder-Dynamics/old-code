@@ -1,6 +1,6 @@
 // connect motor controller pins to Arduino digital pins
 // motor A - right tread
-int enA = 9;
+int enA = 8;
 int inA1 = 7;
 int inA2 = 6;
 // motor B - left tread
@@ -12,7 +12,7 @@ int inB4 = 4;
 int address = 8;
 
 //motor configs
-int motorSpeed = 80;
+int motorSpeed = 120;
 
 //timeout configs
 long timeout = 0;
