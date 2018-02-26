@@ -130,13 +130,14 @@ void setup() {
   pinMode(inB4, OUTPUT);
   Wire.begin(address);          // join i2c bus with address #8
   Wire.onReceive(receiveEvent); // register event
+  Wire.onRequest(sendData);
   Serial.begin(9600);           // start serial for output
 }
 
 
 void loop() {
 
-  receiveEvent(10);
+  //receiveEvent(10);
 
   //turns off motor if maxTimeout ms has passed since last input
   if(millis() - timeout > maxTimeout){
@@ -145,13 +146,13 @@ void loop() {
 }
 
 
-
+char c = ' ';
 // function that executes whenever data is received from master
 // this function is registered as an event, see setup()
 void receiveEvent(int howMany) {
 
   while (Wire.available()) { // loop through all 
-    char c = Wire.read(); // receive byte as a character
+    c = Wire.read(); // receive byte as a character
     Serial.print(c);         // print the character
     
     //controls: WASD
@@ -169,6 +170,11 @@ void receiveEvent(int howMany) {
 
     timeout = millis();
   }
+}
+
+// callback for sending data
+void sendData(){
+  Wire.write(c);
 }
 
 
