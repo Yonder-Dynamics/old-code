@@ -1,18 +1,18 @@
 // connect motor controller pins to Arduino digital pins
 // motor A - right tread
-int enA = 9;
+int enA = 5;
 int inA1 = 7;
 int inA2 = 6;
 // motor B - left tread
 int enB = 3;
-int inB3 = 5;
+int inB3 = 8;
 int inB4 = 4;
 
 //wire configs
 int address = 8;
 
 //motor configs
-int motorSpeed = 80;
+int motorSpeed = 120;
 
 //timeout configs
 long timeout = 0;
@@ -23,23 +23,23 @@ long maxTimeout = 1000; //how long tank will run without new input before stoppi
  */
 
 // Move forwards
-void forwards(int speed) { 
+void forwards(int duty_cycle) { 
   // set speed out of possible range 0~255
-  analogWrite(enA, speed);
-  analogWrite(enB, speed);
+  analogWrite(enA, duty_cycle);
+  analogWrite(enB, duty_cycle);
   // turn on motor A 
   digitalWrite(inA1, HIGH);
   digitalWrite(inA2, LOW);
-    // turn on motor B
+  // turn on motor B
   digitalWrite(inB3, HIGH);
   digitalWrite(inB4, LOW);
 }
 
 // Move backwards 
-void backwards(int speed) {  
+void backwards(int duty_cycle) {  
   // set speed 
-  analogWrite(enA, speed);
-  analogWrite(enB, speed);
+  analogWrite(enA, duty_cycle);
+  analogWrite(enB, duty_cycle);
   // motor A - backwards
   digitalWrite(inA1, LOW);
   digitalWrite(inA2, HIGH);  
@@ -49,10 +49,10 @@ void backwards(int speed) {
 }
 
 // Turn left 
-void left(int speed) {
+void left(int duty_cycle) {
   // set speed 
-  analogWrite(enA, speed);
-  analogWrite(enB, speed);  
+  analogWrite(enA, duty_cycle);
+  analogWrite(enB, duty_cycle);  
   // motor A - forwards
   digitalWrite(inA1, HIGH);
   digitalWrite(inA2, LOW);  
@@ -62,10 +62,10 @@ void left(int speed) {
 }  
   
 // Turn right 
-void right(int speed) {  
+void right(int duty_cycle) {  
   // set speed 
-  analogWrite(enA, speed);
-  analogWrite(enB, speed);
+  analogWrite(enA, duty_cycle);
+  analogWrite(enB, duty_cycle);
   // motor A - backwards
   digitalWrite(inA1, LOW);
   digitalWrite(inA2, HIGH);  
@@ -79,8 +79,8 @@ void right(int speed) {
  */
 
 // accelerate from zero to maximum speed
-void maxAccel(int speed) {
-  for (int i = 0; i < 256; i++)
+void maxAccel(int duty_cycle) {
+  for (int i = 0; i < duty_cycle; i++)
   {
     analogWrite(enA, i);
     analogWrite(enB, i);
@@ -89,8 +89,8 @@ void maxAccel(int speed) {
 }
 
 // decelerate from maximum speed to zero
-void maxDecel(int speed) {
-  for (int i = 255; i >= 0; --i)
+void maxDecel(int duty_cycle) {
+  for (int i = duty_cycle; i >= 0; --i)
   {
     analogWrite(enA, i);
     analogWrite(enB, i);
@@ -138,6 +138,7 @@ void setup() {
 void loop() {
 
   //receiveEvent(10);
+
 
   //turns off motor if maxTimeout ms has passed since last input
   if(millis() - timeout > maxTimeout){
