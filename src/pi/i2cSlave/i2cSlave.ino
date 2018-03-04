@@ -1,11 +1,11 @@
 // connect motor controller pins to Arduino digital pins
 // motor A - right tread
-int enA = 9;
+int enA = 5; //9
 int inA1 = 7;
 int inA2 = 6;
 // motor B - left tread
-int enB = 3;
-int inB3 = 5;
+int enB = 3; //3
+int inB3 = 8;
 int inB4 = 4;
 
 //wire configs
@@ -30,7 +30,7 @@ void forwards(int speed) {
   // turn on motor A 
   digitalWrite(inA1, HIGH);
   digitalWrite(inA2, LOW);
-    // turn on motor B
+  // turn on motor B
   digitalWrite(inB3, HIGH);
   digitalWrite(inB4, LOW);
 }
