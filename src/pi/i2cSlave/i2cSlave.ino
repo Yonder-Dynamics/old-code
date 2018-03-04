@@ -30,7 +30,7 @@ void forwards(int duty_cycle) {
   // turn on motor A 
   digitalWrite(inA1, HIGH);
   digitalWrite(inA2, LOW);
-    // turn on motor B
+  // turn on motor B
   digitalWrite(inB3, HIGH);
   digitalWrite(inB4, LOW);
 }
