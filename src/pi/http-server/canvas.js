@@ -1,3 +1,5 @@
+'use strict';
+
 var squareRotation = 0.0;
 
 function createAndBindBuffer(gl,type,data,usage){
@@ -8,7 +10,7 @@ function createAndBindBuffer(gl,type,data,usage){
 }
 
 function enableVertexFloatArrayBuffer(gl,buffer,position,indexSize){
-  const numComponents = indexSize;  // pull out 3 values per iteration
+  const numComponents = indexSize;  // number of values per iteration
   const type = gl.FLOAT;    // the data in the buffer is 32bit floats
   const normalize = false;  // don't normalize
   const stride = 0;         // how many bytes to get from one set of values to the next
@@ -163,6 +165,10 @@ class Link{
     this.children.forEach((child)=>child.update());
   }
 
+  move(angle){
+    this.update(angle+this.joint.angle);
+  }
+
   draw(gl){
     const world_space = mat4.create();
     mat4.mul(world_space,this.parent.getTransform(),this.transform);
@@ -287,6 +293,8 @@ function main() {
     return;
   }
 
+  initKeys();
+
   // Set clear color to black, fully opaque
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   // Clear the color buffer with specified clear color
@@ -336,8 +344,12 @@ function main() {
     addChild:()=>{},
   };
 
+  const base_joint0 = {angle:0,axis:[0,1,0]};
+  const base0 = new Link(0,0,base_joint0,base_link);
+  base0.build(gl,shaderProgram);
+
   const joint0 = {angle:3.1415/4,axis:[0,0,1]};
-  const link0 = new Link(4,1,joint0,base_link);
+  const link0 = new Link(4,1,joint0,base0);
   link0.build(gl,shaderProgram);
 
   const joint1 = {angle:-3.1415/4,axis:[0,0,1]};
@@ -348,7 +360,7 @@ function main() {
   const link2 = new Link(4,1,joint2,link1);
   link2.build(gl,shaderProgram);
 
-  const knuckle00 = {angle:-3.1415/4,axis:[0,0,1]};
+  const knuckle00 = {angle:-3.1415/3,axis:[0,0,1]};
   const finger00 = new Link(1,0.5,knuckle00,link2);
   finger00.build(gl,shaderProgram);
 
@@ -356,7 +368,7 @@ function main() {
   const finger01 = new Link(1,0.5,knuckle01,finger00);
   finger01.build(gl,shaderProgram);
 
-  const knuckle10 = {angle:3.1415/4,axis:[0,0,1]};
+  const knuckle10 = {angle:3.1415/3,axis:[0,0,1]};
   const finger10 = new Link(1,0.5,knuckle10,link2);
   finger10.build(gl,shaderProgram);
 
@@ -366,11 +378,11 @@ function main() {
 
 
   const drawList = [
+    base0,
     link0,link1,link2,
     finger00,finger01,
     finger10,finger11,
   ];
-
 
   var then = 0;
   var totalTime = 0;
@@ -382,11 +394,71 @@ function main() {
 
     draw(gl,programInfo,drawList,deltaTime);
     totalTime += deltaTime;
-    link0.update(totalTime);
+
+    if(keys.q){
+      link0.move(deltaTime);
+    } else if(keys.a){
+      link0.move(-deltaTime);
+    }
+
+    if(keys.w){
+      link1.move(deltaTime);
+    } else if(keys.s){
+      link1.move(-deltaTime);
+    }
+
+    if(keys.e){
+      link2.move(deltaTime);
+    } else if(keys.d){
+      link2.move(-deltaTime);
+    }
+
+    if(keys.z){
+      base0.move(-deltaTime);
+    } else if(keys.c){
+      base0.move(deltaTime);
+    }
+
+    if(keys[' ']&&knuckle00.angle < -3.1415/5){
+      finger00.move(deltaTime);
+      finger10.move(-deltaTime);
+    } else if(!keys[' ']&&knuckle00.angle > -3.1415/3){
+      finger00.move(-deltaTime);
+      finger10.move(+deltaTime);
+    }
 
     requestAnimationFrame(render);
   }
   requestAnimationFrame(render);
+}
+
+var keys;
+function initKeys(){
+  keys = {
+    'q':false,
+    'w':false,
+    'e':false,
+    'a':false,
+    's':false,
+    'd':false,
+    'z':false,
+    'c':false,
+    ' ':false,
+  }
+  window.addEventListener('keydown',keyDown,false);
+  window.addEventListener('keyup',keyUp,false);
+}
+
+function keyDown(e){
+  if(e.key in keys){
+    keys[e.key] = true;
+  }
+}
+
+function keyUp(e){
+  if(e.key in keys){
+    keys[e.key] = false;
+  }
 }
 
 main();
