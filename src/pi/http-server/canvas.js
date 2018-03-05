@@ -1,8 +1,185 @@
 var squareRotation = 0.0;
-main();
 
-// Vertex shader program
+function createAndBindBuffer(gl,type,data,usage){
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(type,buffer);
+  gl.bufferData(type,data,usage);
+  return buffer;
+}
 
+function enableVertexFloatArrayBuffer(gl,buffer,position,indexSize){
+  const numComponents = indexSize;  // pull out 3 values per iteration
+  const type = gl.FLOAT;    // the data in the buffer is 32bit floats
+  const normalize = false;  // don't normalize
+  const stride = 0;         // how many bytes to get from one set of values to the next
+                            // 0 = use type and numComponents above
+  const offset = 0;         // how many bytes inside the buffer to start from
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.vertexAttribPointer(
+      position,
+      numComponents,
+      type,
+      normalize,
+      stride,
+      offset);
+  gl.enableVertexAttribArray(
+      position);
+}
+
+class Cubic{
+  constructor(x,y,z){
+    this.x = x;
+    this.y = y;
+    this.z = z;
+
+    //rgba
+    this.color = [0.2,0.2,0.9,1.0];
+
+    this.buffers = {};
+    this.positions = {};
+    this.uniforms = {};
+  }
+
+  build(gl,shaderProgram){
+    //create vertex array
+    const vertices = [
+      -this.x/2,  -this.y/2, -this.z/2, //front face
+       this.x/2,  -this.y/2, -this.z/2,
+       this.x/2,   this.y/2, -this.z/2,
+      -this.x/2,   this.y/2, -this.z/2,
+
+      -this.x/2,  -this.y/2,  this.z/2, //back face
+       this.x/2,  -this.y/2,  this.z/2,
+       this.x/2,   this.y/2,  this.z/2,
+      -this.x/2,   this.y/2,  this.z/2,
+    ];
+
+    // this.buffers.vertexBuffer = gl.createBuffer();
+    // gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+    // gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.STATIC_DRAW);
+    this.buffers.vertexBuffer = createAndBindBuffer(gl,gl.ARRAY_BUFFER,new Float32Array(vertices),gl.STATIC_DRAW);
+
+    const colors = [
+      0.2,  0.2,  0.9,  1.0,
+      0.2,  0.2,  0.9,  1.0,
+      0.2,  0.2,  0.9,  1.0,
+      0.2,  0.2,  0.9,  1.0,
+
+      0.2,  0.2,  0.9,  1.0,
+      0.2,  0.2,  0.9,  1.0,
+      0.2,  0.2,  0.9,  1.0,
+      0.2,  0.2,  0.9,  1.0,
+    ];
+
+    this.buffers.colorBuffer = createAndBindBuffer(gl,gl.ARRAY_BUFFER,new Float32Array(colors),gl.STATIC_DRAW);
+
+    const indices = [
+      0,1,1,2,2,3,3,0, //front face
+      4,5,5,6,6,7,7,4, //back face
+      0,4,1,5,2,6,3,7, //connections
+    ];
+
+    this.buffers.indexBuffer = createAndBindBuffer(gl,gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(indices),gl.STATIC_DRAW);
+
+    this.positions.vertexBuffer = gl.getAttribLocation(shaderProgram, 'aVertexPosition');
+    this.positions.colorBuffer  = gl.getAttribLocation(shaderProgram, 'aVertexColor');
+
+    return this;
+  }
+
+  draw(gl){
+
+    enableVertexFloatArrayBuffer(gl,this.buffers.vertexBuffer,this.positions.vertexBuffer,3);
+    enableVertexFloatArrayBuffer(gl,this.buffers.colorBuffer,this.positions.colorBuffer,4);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.buffers.indexBuffer);
+
+    //draw everything
+    {
+      const offset = 0;
+      const vertexCount = 24;
+      const type = gl.UNSIGNED_SHORT;
+      gl.drawElements(gl.LINES,vertexCount,type,offset);
+    }
+  }
+}
+
+class Link{
+  constructor(length,width,joint,parent){
+    this.wireframe = new Cubic(length,width,width);
+    this.uniforms = {};
+    this.parent = parent;
+    this.children = [];
+    this.parent.addChild(this);
+    this.joint = joint;
+    this.length = length;
+
+    this.buildTransforms();
+    // const origin = vec4.create();
+    // vec4.set(origin,0,0,0,1);
+    // vec4.transformMat4(origin,origin,this.connector);
+
+    // console.log(this.connector);
+    
+  }
+
+  buildTransforms(){
+    this.transform = mat4.create();
+    // Now move the drawing position a bit to where we want to
+    // start drawing the square.
+    mat4.fromRotation(this.transform,this.joint.angle,this.joint.axis);
+    const translation = mat4.create();
+    mat4.fromTranslation(translation,[this.length/2, 0.0, 0.0]); //position one end of segment 
+    mat4.mul(this.transform,this.transform,translation);
+
+    const world_space = mat4.create();
+    mat4.copy(world_space,this.parent.getTransform());
+
+    this.connector = mat4.create();
+    mat4.fromTranslation(this.connector,[this.length/2,0,0]);
+    mat4.mul(world_space,world_space,this.transform);
+    mat4.mul(this.connector,world_space,this.connector);
+  }
+
+  build(gl,shaderProgram){
+    this.wireframe.build(gl,shaderProgram);
+
+
+    // mat4.rotate(modelViewMatrix,  // destination matrix
+    //           modelViewMatrix,  // matrix to rotate
+    //           squareRotation * 0.7,   // amount to rotate in radians
+    //           [0, 1, 0]);       // axis to rotate around
+    this.uniforms.transform     = gl.getUniformLocation(shaderProgram,'uModelViewMatrix');
+
+  }
+
+  addChild(child){
+    this.children.push(child);
+  }
+
+  update(angle=this.joint.angle){
+    this.joint.angle = angle;
+    this.buildTransforms();
+    this.children.forEach((child)=>child.update());
+  }
+
+  draw(gl){
+    const world_space = mat4.create();
+    mat4.mul(world_space,this.parent.getTransform(),this.transform);
+
+
+    gl.uniformMatrix4fv(
+      this.uniforms.transform,
+      false,
+      world_space);
+
+    this.wireframe.draw(gl);
+  }
+
+  getTransform(){
+    return this.connector;
+  }
+}
 
 //
 // Initialize a shader program, so WebGL knows how to draw our data
@@ -36,15 +213,12 @@ function loadShader(gl, type, source) {
   const shader = gl.createShader(type);
 
   // Send the source to the shader object
-
   gl.shaderSource(shader, source);
 
   // Compile the shader program
-
   gl.compileShader(shader);
 
   // See if it compiled successfully
-
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
     alert('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
     gl.deleteShader(shader);
@@ -54,104 +228,7 @@ function loadShader(gl, type, source) {
   return shader;
 }
 
-function initBuffers(gl) {
-  // Create a buffer for the square's positions.
-
-  const positions = [
-    // Front face
-    -1.0, -1.0,  1.0,
-     1.0, -1.0,  1.0,
-     1.0,  1.0,  1.0,
-    -1.0,  1.0,  1.0,
-    
-    // Back face
-    -1.0, -1.0, -1.0,
-    -1.0,  1.0, -1.0,
-     1.0,  1.0, -1.0,
-     1.0, -1.0, -1.0,
-    
-    // Top face
-    -1.0,  1.0, -1.0,
-    -1.0,  1.0,  1.0,
-     1.0,  1.0,  1.0,
-     1.0,  1.0, -1.0,
-    
-    // Bottom face
-    -1.0, -1.0, -1.0,
-     1.0, -1.0, -1.0,
-     1.0, -1.0,  1.0,
-    -1.0, -1.0,  1.0,
-    
-    // Right face
-     1.0, -1.0, -1.0,
-     1.0,  1.0, -1.0,
-     1.0,  1.0,  1.0,
-     1.0, -1.0,  1.0,
-    
-    // Left face
-    -1.0, -1.0, -1.0,
-    -1.0, -1.0,  1.0,
-    -1.0,  1.0,  1.0,
-    -1.0,  1.0, -1.0,
-  ];
-
-  const positionBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(positions),gl.STATIC_DRAW);
-
-  const faceColors = [
-    [1.0,  1.0,  1.0,  1.0],    // Front face: white
-    [1.0,  0.0,  0.0,  1.0],    // Back face: red
-    [0.0,  1.0,  0.0,  1.0],    // Top face: green
-    [0.0,  0.0,  1.0,  1.0],    // Bottom face: blue
-    [1.0,  1.0,  0.0,  1.0],    // Right face: yellow
-    [1.0,  0.0,  1.0,  1.0],    // Left face: purple
-  ];
-
-  // Convert the array of colors into a table for all the vertices.
-
-  var colors = [];
-
-  for (var j = 0; j < faceColors.length; ++j) {
-    const c = faceColors[j];
-
-    // Repeat each color four times for the four vertices of the face
-    colors = colors.concat(c, c, c, c);
-  }
-
-  const colorBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-
-  // This array defines each face as two triangles, using the
-  // indices into the vertex array to specify each triangle's
-  // position.
-
-  const indices = [
-    0,  1,  2,      0,  2,  3,    // front
-    4,  5,  6,      4,  6,  7,    // back
-    8,  9,  10,     8,  10, 11,   // top
-    12, 13, 14,     12, 14, 15,   // bottom
-    16, 17, 18,     16, 18, 19,   // right
-    20, 21, 22,     20, 22, 23,   // left
-  ];
-
-  // Now send the element array to GL
-
-  const indexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
-      new Uint16Array(indices), gl.STATIC_DRAW);
-
-
-  return {
-    position: positionBuffer,
-    color: colorBuffer,
-    indices: indexBuffer,
-  };
-}
-
-function drawScene(gl, programInfo, buffers,deltaTime) {
+function draw(gl,programInfo,drawList,deltaTime){
   gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
   gl.clearDepth(1.0);                 // Clear everything
   gl.enable(gl.DEPTH_TEST);           // Enable depth testing
@@ -182,74 +259,7 @@ function drawScene(gl, programInfo, buffers,deltaTime) {
                    zNear,
                    zFar);
 
-  // Set the drawing position to the "identity" point, which is
-  // the center of the scene.
-  const modelViewMatrix = mat4.create();
-
-  // Now move the drawing position a bit to where we want to
-  // start drawing the square.
-
-  mat4.translate(modelViewMatrix,     // destination matrix
-                 modelViewMatrix,     // matrix to translate
-                 [-0.0, 0.0, -6.0]);  // amount to translate
-
-
-  mat4.rotate(modelViewMatrix,  // destination matrix
-              modelViewMatrix,  // matrix to rotate
-              squareRotation,   // amount to rotate in radians
-              [0, 0, 1]);       // axis to rotate around
-
-  mat4.rotate(modelViewMatrix,  // destination matrix
-            modelViewMatrix,  // matrix to rotate
-            squareRotation * 0.7,   // amount to rotate in radians
-            [0, 1, 0]);       // axis to rotate around
-
-  // Tell WebGL how to pull out the positions from the position
-  // buffer into the vertexPosition attribute.
-  {
-    const numComponents = 3;  // pull out 2 values per iteration
-    const type = gl.FLOAT;    // the data in the buffer is 32bit floats
-    const normalize = false;  // don't normalize
-    const stride = 0;         // how many bytes to get from one set of values to the next
-                              // 0 = use type and numComponents above
-    const offset = 0;         // how many bytes inside the buffer to start from
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
-    gl.vertexAttribPointer(
-        programInfo.attribLocations.vertexPosition,
-        numComponents,
-        type,
-        normalize,
-        stride,
-        offset);
-    gl.enableVertexAttribArray(
-        programInfo.attribLocations.vertexPosition);
-  }
-
-  // Tell WebGL how to pull out the colors from the color buffer
-  // into the vertexColor attribute.
-  {
-    const numComponents = 4;
-    const type = gl.FLOAT;
-    const normalize = false;
-    const stride = 0;
-    const offset = 0;
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
-    gl.vertexAttribPointer(
-        programInfo.attribLocations.vertexColor,
-        numComponents,
-        type,
-        normalize,
-        stride,
-        offset);
-    gl.enableVertexAttribArray(
-        programInfo.attribLocations.vertexColor);
-  }
-
-  // Tell WebGL how to pull out the indices from the index buffer
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
-
   // Tell WebGL to use our program when drawing
-
   gl.useProgram(programInfo.program);
 
   // Set the shader uniforms
@@ -258,18 +268,8 @@ function drawScene(gl, programInfo, buffers,deltaTime) {
       programInfo.uniformLocations.projectionMatrix,
       false,
       projectionMatrix);
-  gl.uniformMatrix4fv(
-      programInfo.uniformLocations.modelViewMatrix,
-      false,
-      modelViewMatrix);
 
-  {
-    const offset = 0;
-    const vertexCount = 36;
-    const type = gl.UNSIGNED_SHORT;
-    gl.drawElements(gl.TRIANGLES, vertexCount,type,offset);
-  }
-
+  drawList.forEach((obj)=>obj.draw(gl));
   squareRotation += deltaTime;
 }
 
@@ -328,21 +328,65 @@ function main() {
     },
   };
 
-  const buffers = initBuffers(gl);
+  const base_transform = mat4.create();
+  mat4.translate(base_transform,base_transform,[-5,0.0,-20.0])
 
-  // drawScene(gl,programInfo,buffers);
+  const base_link = {
+    getTransform:()=>base_transform,
+    addChild:()=>{},
+  };
+
+  const joint0 = {angle:3.1415/4,axis:[0,0,1]};
+  const link0 = new Link(4,1,joint0,base_link);
+  link0.build(gl,shaderProgram);
+
+  const joint1 = {angle:-3.1415/4,axis:[0,0,1]};
+  const link1 = new Link(4,1,joint1,link0);
+  link1.build(gl,shaderProgram);
+
+  const joint2 = {angle:-3.1415/4,axis:[0,0,1]};
+  const link2 = new Link(4,1,joint2,link1);
+  link2.build(gl,shaderProgram);
+
+  const knuckle00 = {angle:-3.1415/4,axis:[0,0,1]};
+  const finger00 = new Link(1,0.5,knuckle00,link2);
+  finger00.build(gl,shaderProgram);
+
+  const knuckle01 = {angle:3.1415/3,axis:[0,0,1]};
+  const finger01 = new Link(1,0.5,knuckle01,finger00);
+  finger01.build(gl,shaderProgram);
+
+  const knuckle10 = {angle:3.1415/4,axis:[0,0,1]};
+  const finger10 = new Link(1,0.5,knuckle10,link2);
+  finger10.build(gl,shaderProgram);
+
+  const knuckle11 = {angle:-3.1415/3,axis:[0,0,1]};
+  const finger11 = new Link(1,0.5,knuckle11,finger10);
+  finger11.build(gl,shaderProgram);
+
+
+  const drawList = [
+    link0,link1,link2,
+    finger00,finger01,
+    finger10,finger11,
+  ];
+
 
   var then = 0;
-
+  var totalTime = 0;
   // Draw the scene repeatedly
   function render(now) {
     now *= 0.001;  // convert to seconds
     const deltaTime = now - then;
     then = now;
 
-    drawScene(gl, programInfo, buffers, deltaTime);
+    draw(gl,programInfo,drawList,deltaTime);
+    totalTime += deltaTime;
+    link0.update(totalTime);
 
     requestAnimationFrame(render);
   }
   requestAnimationFrame(render);
 }
+
+main();
