@@ -1,3 +1,10 @@
+/**
+ * cubic.js: basic rectangular prism object with specified dimensions,
+ * centered on origin. users of Cubic objects should apply their own
+ * ModelViewProjection transforms before calling Cubic.draw
+ * 
+ * Author: Alex Haggart
+ */
 function createAndBindBuffer(gl,type,data,usage){
   const buffer = gl.createBuffer();
   gl.bindBuffer(type,buffer);

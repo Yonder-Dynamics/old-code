@@ -1,8 +1,14 @@
-// 'use strict';
-
-// const mat = require('gl-matrix');
+/**
+ * canvas.js: sets up the html5 canvas that we will render to. also manages
+ * the animation loop
+ * 
+ * Author: Alex Haggart
+ */
 import {mat4,vec4} from 'gl-matrix';
 import {Link} from './link.js';
+
+import vsSource from './basic-vertex-shader.vs';
+import fsSource from './basic-frag-shader.fs';
 
 //
 // Initialize a shader program, so WebGL knows how to draw our data
@@ -21,7 +27,7 @@ function initShaderProgram(gl, vsSource, fsSource) {
   // If creating the shader program failed, alert
 
   if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-    alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
+    console.error('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
     return null;
   }
 
@@ -43,7 +49,7 @@ function loadShader(gl, type, source) {
 
   // See if it compiled successfully
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    alert('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
+    console.error('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
     gl.deleteShader(shader);
     return null;
   }
@@ -61,6 +67,7 @@ function draw(gl,programInfo,drawList,deltaTime){
 
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+  //TODO: this should probably go somewhere else, since it is static
   // Create a perspective matrix, a special matrix that is
   // used to simulate the distortion of perspective in a camera.
   // Our field of view is 45 degrees, with a width/height
@@ -105,7 +112,7 @@ function main() {
 
   // Only continue if WebGL is available and working
   if (!gl) {
-    alert("Unable to initialize WebGL. Your browser or machine may not support it.");
+    console.error("Unable to initialize WebGL. Your browser or machine may not support it.");
     return;
   }
 
@@ -116,27 +123,9 @@ function main() {
   // Clear the color buffer with specified clear color
   gl.clear(gl.COLOR_BUFFER_BIT);
 
-  const vsSource = `
-    attribute vec4 aVertexPosition;
-    attribute vec4 aVertexColor;
-
-    uniform mat4 uModelViewMatrix;
-    uniform mat4 uProjectionMatrix;
-
-    varying lowp vec4 vColor;
-
-    void main() {
-      gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
-      vColor = aVertexColor;
-    }
-  `;
-
-  const fsSource = `
-    varying lowp vec4 vColor;
-    void main() {
-      gl_FragColor = vColor;
-    }
-  `;
+  // const vsSource = require('./basic-vertex-shader.vs');
+  
+  // const fsSource = require('./basic-frag-shader.fs');
 
   const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
 
