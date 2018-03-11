@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(2018_URC)
+project(urc_2018)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -14,6 +14,10 @@ set(CUDA_INCLUDE_DIR "${CUDA_DIR}/include")
 find_package(
   catkin REQUIRED
 	roscpp
+  zed REQUIRED
+  PCL
+  pcl_conversions
+  tf
 #  zed REQUIRED
   rospy
   sensor_msgs
@@ -211,6 +215,22 @@ include_directories(
 add_executable(MCI src/microcontrollers/MicroControllerInterface.cpp)
 target_link_libraries(MCI ${catkin_LIBRARIES})
 
+add_executable(ZED src/zed/zed_main.cpp)
+target_link_libraries(ZED 
+  ${catkin_LIBRARIES}
+  ${ZED_LIBRARIES}
+  ${CUDA_NPP_LIBRARIES_ZED}
+)
+add_executable(mapping src/zed/mapping.cpp)
+target_link_libraries(mapping 
+  ${catkin_LIBRARIES}
+  ${ZED_LIBRARIES}
+  ${CUDA_NPP_LIBRARIES_ZED}
+)
+link_directories(
+  ${ZED_LIBRARY_DIR}
+  ${cuda_path}
+)
 #add_executable(ZED src/zed/zed_main.cpp)
 #target_link_libraries(ZED 
   #${catkin_LIBRARIES}
