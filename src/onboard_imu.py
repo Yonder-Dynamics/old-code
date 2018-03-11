@@ -15,7 +15,7 @@ import numpy as np
 IMU_FRAME_ID = "imu_link"
 
 def main():
-    SETTINGS_FILE = "/home/ubuntu/catkin_ws/src/urc_2018/src/RTIMULib.ini"
+    SETTINGS_FILE = "/home/ubuntu/catkin_ws/src/urc_2018/src/RTIMULib"
 
     s = RTIMU.Settings(SETTINGS_FILE)
     print(s)
